@@ -1,0 +1,162 @@
+;(function () {
+    function AutoSlide (el,options) {
+        this.el = typeof el == 'string' ? document.querySelector(el) : el;
+
+        this.options = {
+            touchArea : window,
+            direction : 'top'  // top left right bottom
+        }
+
+        for (var key in options) {
+            this.options[key] = options[key];
+        }
+
+        this.init();
+        this.addEvent();
+    };
+
+    AutoSlide.prototype = {
+        handleEvent : function (e) {
+            switch (e.type) {
+                case 'touchstart' :
+                    this._start(e);break;
+                case 'touchmove' :
+                    this._move(e); break;
+                case 'touchend' :
+                    this._end(e) ; break;
+                case 'transitionEnd':
+                case 'webkitTransitionEnd':
+                    this.transitionEnd(e);
+            }
+        },
+        init : function () {
+            this.parentEl = this.el.parentNode;
+            this.isClose = false;
+            this.isMove = false;
+            this.wrap();
+            var style = {
+                transition : 'transform ' + '300ms ' + '',
+                overflow : 'hidden'
+            }
+            for (var key in style) {
+                this.autoSliderWrap.style[key] = style[key];
+            }
+
+            switch (this.options.direction) {
+                case 'top' : this.backDirection = 'bottom';break;
+                case 'bottom' : this.backDirection = 'top';break;
+                case 'left' : this.backDirection = 'right';break;
+                case 'right' : this.backDirection = 'left';break;
+            }
+
+            var dir = (this.options.direction=='top' || this.options.direction=='left') ? -1 : 1;
+            this.sliderWidth = this.el.offsetWidth * dir;
+            this.sliderHeight = this.el.offsetHeight * dir;
+        },
+        wrap : function () {
+            var parentElWidth = this.parentEl.offsetWidth,
+                parentElHeight = this.parentEl.offsetHeight,
+                elHeight = this.el.offsetHeight,
+                elWidth = this.el.offsetWidth;
+            var wrap = document.createElement('div'),
+                top = document.createElement('div'),
+                bottom = document.createElement('div');
+            wrap.className = 'auto-Slide-wrap';
+            top.className = 'auto-Slide-top';
+            bottom.className = 'auto-Slide-bottom';
+
+
+            wrap.style.width = parentElWidth + 'px';
+            wrap.style.height = parentElHeight + 'px';
+            wrap.style.overflow = 'hidden';
+
+
+            this.el.style.width = elWidth + 'px' ;
+            this.el.style.height = elHeight + 'px';
+            top.appendChild(this.el);
+
+            bottom.style.height = parentElHeight + 'px' ;
+            bottom.style.width = parentElWidth + 'px' ;
+            bottom.style.overflow = 'hidden';
+
+            var child = this.parentEl.firstChild;
+            while (child) {
+                bottom.appendChild(child);
+                child = this.parentEl.firstChild;
+            }
+            wrap.style.height =  elHeight + parentElHeight + 'px';
+            wrap.appendChild(top);
+            wrap.appendChild(bottom);
+            this.parentEl.appendChild(wrap);
+
+
+            this.autoSliderWrap = wrap;
+            this.autoSliderTop = top;
+            this.autoSliderBottom = bottom;
+        },
+        addEvent : function () {
+            this.options.touchArea.addEventListener('touchstart',this,false)
+            this.options.touchArea.addEventListener('touchmove',this,false)
+            this.options.touchArea.addEventListener('touchend',this,false)
+            this.parentEl.addEventListener('transitionEnd',this,false)
+            this.parentEl.addEventListener('webkitTransitionEnd',this,false)
+        },
+        removeEvent : function () {
+            this.options.touchArea.removeEventListener('touchstart',this,false)
+            this.options.touchArea.removeEventListener('touchmove',this,false)
+            this.options.touchArea.removeEventListener('touchend',this,false)
+            this.parentEl.removeEventListener('transitionEnd',this,false)
+            this.parentEl.removeEventListener('webkitTransitionEnd',this,false)
+        },
+        transitionEnd : function () {
+            this.isClose = !this.isClose;
+            this.isMove = false;
+        },
+        _start : function (e) {
+            var touch = e.touches[0];
+            this.startX = touch.pageX;
+            this.startY = touch.pageY;
+        },
+        _move : function (e) {
+            if(this.isMove){
+                return;
+            }
+
+            var touch = e.touches[0];
+            var moveX = touch.pageX-this.startX,
+                moveY = touch.pageY-this.startY,
+                touchAngle = Math.atan2(Math.abs(touch.pageY - this.startY), Math.abs(touch.pageX - this.startX)) * 180 / Math.PI;
+            var moveDirectionX = moveX > 0 ? 'right' : 'left',
+                moveDirectionY = moveY >0 ? 'bottom' : 'top';
+
+            if(this.isClose && (this.backDirection == moveDirectionX || this.backDirection == moveDirectionY ) ) {
+                this.back();
+                return
+            }
+            if( touchAngle < 45 && this.options.direction == moveDirectionX){
+                this.go(this.sliderWidth,0);
+            }
+            if(touchAngle >= 45 && this.options.direction == moveDirectionY){
+                this.go(0,this.sliderHeight);
+            }
+        },
+        _end : function (e) {
+
+        },
+        go : function (x,y) {
+            if(this.isClose)return;
+            this.translate(x,y);
+        },
+        back : function () {
+
+            this.translate(0,0);
+        },
+        translate :function (x,y) {
+            this.isMove = true;
+            this.autoSliderWrap.style.transform = 'translate('+ x + 'px,' + y + 'px)';
+        }
+
+    }
+
+    window.AutoSlide = AutoSlide
+})()
