@@ -132,11 +132,11 @@
                 moveDirectionY = moveY >0 ? 'bottom' : 'top';
             this.moveDirectionY = moveDirectionY;
 
-            if ((this.isScrollTop && moveDirectionY == 'bottom')){
-                this.scrollDisable();
-            }else{
-                this.scrollEnable();
-            }
+            //if ((this.isScrollTop && moveDirectionY == 'bottom')){
+            //    this.scrollDisable();
+            //}else{
+            //    this.scrollEnable();
+            //}
             if(this.isBack()) {
                 this.back();
                 return
@@ -152,7 +152,7 @@
             if(this.isClose)return;
             this.autoSliderBottom.style.overflow = 'auto';
             this.translate(x,y);
-            this.scrollDisable();
+            //this.scrollDisable();
         },
         isBack : function () {
             return this.isClose && this.autoSliderBottom.scrollTop == 0 && this.backDirection == this.moveDirectionY
