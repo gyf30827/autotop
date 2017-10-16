@@ -33,6 +33,8 @@
             this.parentEl = this.el.parentNode;
             this.isClose = false;
             this.isMove = false;
+            this.isScrollBottom = false;
+            this.isScrollTop = false;
             this.wrap();
             var style = {
                 transition : 'transform ' + '300ms ' + '',
@@ -70,6 +72,7 @@
             wrap.style.height = parentElHeight + 'px';
             wrap.style.overflow = 'hidden';
 
+            this.options.touchArea = wrap;
 
             this.el.style.width = elWidth + 'px' ;
             this.el.style.height = elHeight + 'px';
@@ -78,6 +81,8 @@
             bottom.style.height = parentElHeight + 'px' ;
             bottom.style.width = parentElWidth + 'px' ;
             bottom.style.overflow = 'hidden';
+            this.bottomScrollHeight = bottom.scrollHeight;
+            this.bottomHeight = parentElHeight;
 
             var child = this.parentEl.firstChild;
             while (child) {
@@ -100,6 +105,7 @@
             this.options.touchArea.addEventListener('touchend',this,false)
             this.parentEl.addEventListener('transitionEnd',this,false)
             this.parentEl.addEventListener('webkitTransitionEnd',this,false)
+            this.autoSliderBottom.addEventListener('scroll',this.bottomScroll.bind(this),false)
         },
         removeEvent : function () {
             this.options.touchArea.removeEventListener('touchstart',this,false)
@@ -107,6 +113,7 @@
             this.options.touchArea.removeEventListener('touchend',this,false)
             this.parentEl.removeEventListener('transitionEnd',this,false)
             this.parentEl.removeEventListener('webkitTransitionEnd',this,false)
+            this.autoSliderBottom.removeEventListener('scroll',this.bottomScroll.bind(this),false)
         },
         transitionEnd : function () {
             this.isClose = !this.isClose;
@@ -128,8 +135,15 @@
                 touchAngle = Math.atan2(Math.abs(touch.pageY - this.startY), Math.abs(touch.pageX - this.startX)) * 180 / Math.PI;
             var moveDirectionX = moveX > 0 ? 'right' : 'left',
                 moveDirectionY = moveY >0 ? 'bottom' : 'top';
+            this.moveDirectionX = moveDirectionX;
+            this.moveDirectionY = moveDirectionY;
 
-            if(this.isClose && (this.backDirection == moveDirectionX || this.backDirection == moveDirectionY ) ) {
+            if ((this.isScrollTop && moveDirectionY == 'bottom')){
+                this.scrollDisable();
+            }else{
+                this.scrollEnable();
+            }
+            if(this.isBack()) {
                 this.back();
                 return
             }
@@ -145,15 +159,37 @@
         },
         go : function (x,y) {
             if(this.isClose)return;
+            this.autoSliderBottom.style.overflow = 'auto';
+            this.scrollDisable();
             this.translate(x,y);
         },
+        isBack : function () {
+            return this.isClose && this.autoSliderBottom.scrollTop == 0 && (this.backDirection == this.moveDirectionX || this.backDirection == this.moveDirectionY)
+        },
         back : function () {
-
+            this.autoSliderBottom.style.overflow = 'hidden';
             this.translate(0,0);
         },
         translate :function (x,y) {
             this.isMove = true;
             this.autoSliderWrap.style.transform = 'translate('+ x + 'px,' + y + 'px)';
+        },
+        bottomScroll : function () {
+            var scrollTop = this.autoSliderBottom.scrollTop;
+            this.isScrollTop = scrollTop <=5;
+            this.isScrollBottom = (this.bottomScrollHeight - scrollTop == this.bottomHeight);
+
+        },
+        scrollDisable : function () {
+            console.log('disable')
+            document.body.addEventListener('touchmove',this.preventDefault,false);
+        },
+        scrollEnable : function () {
+            document.body.removeEventListener('touchmove',this.preventDefault,false);
+        },
+        preventDefault : function (e) {
+            e.preventDefault();
+            e.stopPropagation();
         }
 
     }

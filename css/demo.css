@@ -23,9 +23,9 @@ html,body{
 }
 
 .bottom {
-    height: 100%;
+    /*height: 100%;*/
     background: green;
-    overflow: scroll;
+    overflow: hidden;
     font-size: 60px;
 
 }
