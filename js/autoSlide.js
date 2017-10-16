@@ -4,7 +4,7 @@
 
         this.options = {
             touchArea : window,
-            direction : 'top'  // top left right bottom
+            direction : 'top'
         }
 
         for (var key in options) {
@@ -33,7 +33,6 @@
             this.parentEl = this.el.parentNode;
             this.isClose = false;
             this.isMove = false;
-            this.isScrollBottom = false;
             this.isScrollTop = false;
             this.wrap();
             var style = {
@@ -47,12 +46,9 @@
             switch (this.options.direction) {
                 case 'top' : this.backDirection = 'bottom';break;
                 case 'bottom' : this.backDirection = 'top';break;
-                case 'left' : this.backDirection = 'right';break;
-                case 'right' : this.backDirection = 'left';break;
             }
 
-            var dir = (this.options.direction=='top' || this.options.direction=='left') ? -1 : 1;
-            this.sliderWidth = this.el.offsetWidth * dir;
+            var dir = (this.options.direction=='top') ? -1 : 1;
             this.sliderHeight = this.el.offsetHeight * dir;
         },
         wrap : function () {
@@ -133,9 +129,7 @@
             var moveX = touch.pageX-this.startX,
                 moveY = touch.pageY-this.startY,
                 touchAngle = Math.atan2(Math.abs(touch.pageY - this.startY), Math.abs(touch.pageX - this.startX)) * 180 / Math.PI;
-            var moveDirectionX = moveX > 0 ? 'right' : 'left',
                 moveDirectionY = moveY >0 ? 'bottom' : 'top';
-            this.moveDirectionX = moveDirectionX;
             this.moveDirectionY = moveDirectionY;
 
             if ((this.isScrollTop && moveDirectionY == 'bottom')){
@@ -147,9 +141,6 @@
                 this.back();
                 return
             }
-            if( touchAngle < 45 && this.options.direction == moveDirectionX){
-                this.go(this.sliderWidth,0);
-            }
             if(touchAngle >= 45 && this.options.direction == moveDirectionY){
                 this.go(0,this.sliderHeight);
             }
@@ -160,11 +151,11 @@
         go : function (x,y) {
             if(this.isClose)return;
             this.autoSliderBottom.style.overflow = 'auto';
-            this.scrollDisable();
             this.translate(x,y);
+            this.scrollDisable();
         },
         isBack : function () {
-            return this.isClose && this.autoSliderBottom.scrollTop == 0 && (this.backDirection == this.moveDirectionX || this.backDirection == this.moveDirectionY)
+            return this.isClose && this.autoSliderBottom.scrollTop == 0 && this.backDirection == this.moveDirectionY
         },
         back : function () {
             this.autoSliderBottom.style.overflow = 'hidden';
@@ -177,11 +168,9 @@
         bottomScroll : function () {
             var scrollTop = this.autoSliderBottom.scrollTop;
             this.isScrollTop = scrollTop <=5;
-            this.isScrollBottom = (this.bottomScrollHeight - scrollTop == this.bottomHeight);
 
         },
         scrollDisable : function () {
-            console.log('disable')
             document.body.addEventListener('touchmove',this.preventDefault,false);
         },
         scrollEnable : function () {
